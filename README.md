@@ -1,69 +1,102 @@
-# ML Prediction Service
+✅ Доменная модель (основные сущности и связи)
 
-A web application that provides ML model predictions with user authentication.
+👤 User
+Пользователь сервиса
+Поля:
 
-## Setup
+id: int
 
-### Prerequisites
-- Python 3.8+
-- Node.js 14+
-- PostgreSQL
+email: str
 
-### Backend Setup
+hashed_password: str
 
-1. Create a PostgreSQL database named `ml_service`
+📈 Prediction
+Результат прогноза ML-модели
+Поля:
 
-2. Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
+id: int
 
-3. Run the FastAPI backend:
-```bash
-uvicorn app.main:app --reload
-```
+value: float — предсказанное значение
 
-The backend will run on http://localhost:8000
+timestamp: datetime — время предсказания
 
-### Frontend Setup
 
-1. Navigate to the frontend directory:
-```bash
-cd frontend
-```
+Класс MLService 
+Атрибуты 
+-Модель для предикта 
+-Последнее предсказание
+-Время последнего предсказания
+Методы 
+-get_prediction() - получение нового предсказания
 
-2. Install dependencies:
-```bash
-npm install
-```
 
-3. Start the development server:
-```bash
-npm start
-```
+✅ СУБД 
+В docker-compose.yml  поднят сервис db, основанный на postgres:14
+Контейнер с FastAPI (backend) подключается к нему.
+Для взаимодействия с БД используется SQL Alchemy
 
-The frontend will run on http://localhost:3000
+✅ REST Интерфейс 
 
-## Features
+POST /register  -  регистрация нового пользователя.
 
-- User authentication (registration and login)
-- ML model predictions updated every 5 minutes
-- Real-time prediction display with timestamp
-- Secure API endpoints
-- Modern UI with Tailwind CSS
+POST /token - логин, возвращает JWT токен доступа.
 
-## API Endpoints
+ GET /prediction - получить последнее предсказание модели.
 
-- POST `/register` - Register new user
-- POST `/token` - Login and get access token
-- GET `/prediction` - Get latest prediction (requires authentication)
+ GET /prediction/history -  получить историю предсказаний (до 2000 записей).
 
-## Environment Variables
 
-Create a `.env` file in the root directory with:
+✅  пользовательский интерфейс для сервиса
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost/ml_service
-SECRET_KEY=your-secret-key
-TINKOFF_TOKEN=your-tinkoff-token
-``` 
+Страница регистрации
+![image](https://github.com/user-attachments/assets/251cf520-3293-444f-ac75-81b86b2a4593)
+
+Страница авторизации
+![image](https://github.com/user-attachments/assets/b9315fd8-17f6-464f-88fd-a783c8d26a34)
+
+
+Личный кабинет 
+- Возможность переключиться между темной и светлой темой
+- Текущее предсказание подсвечивается зеленым (больше предыдущего) , красным (меньше), желтым (такое же)
+- При запуске сервиса история предсказаний будет пуста, но будет пополняться и хранит до 2000 наблюдений
+- Можно сделать экспорт истории в .csv / просто скопировать ее.
+- Есть фильтр истории за посл день/неделю/30 дней
+- Есть график динамики предсказаний по времени.
+![image](https://github.com/user-attachments/assets/035442cf-c78f-4748-b951-4b18caf06d74)
+
+✅  Контейнеризация
+Сервис упакован в докер контейнер
+Чтобы запустить:
+docker-compose build
+docker-compose up
+
+✅  Воркеры RabbitMQ
+Не успел реализовать , постараюсь 9-10 до второго дедлайна. В коде есть наброски, которые надо согласовать с друг другом.
+
+
+✅ Тесты
+1. test_register
+Проверяет, можно ли зарегистрировать нового пользователя.
+
+2. test_login_and_get_token
+Выполняет вход с существующими данными пользователя.
+
+Проверяет, что выдан валидный JWT токен.
+
+3. test_prediction_endpoints
+Авторизуется и проверяет доступность предсказания (/prediction) и истории (/prediction/history).
+
+Проверяет коды ответа и структуру JSON-ответов.
+
+Запуск:
+cd tests
+pytest -q 
+
+
+
+
+
+
+
+
+
